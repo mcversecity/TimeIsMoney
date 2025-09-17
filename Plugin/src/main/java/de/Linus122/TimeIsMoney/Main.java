@@ -3,6 +3,10 @@ package de.Linus122.TimeIsMoney;
 import static de.Linus122.TimeIsMoney.tools.Utils.CC;
 import static de.Linus122.TimeIsMoney.tools.Utils.applyPlaceholders;
 
+import com.earth2me.essentials.Essentials;
+import fr.euphyllia.energie.model.Scheduler;
+import fr.euphyllia.energie.model.SchedulerType;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -15,9 +19,9 @@ import java.util.stream.Collectors;
 
 import de.Linus122.TimeIsMoney.data.*;
 import de.Linus122.TimeIsMoney.tools.Utils;
-import fr.euphyllia.energie.Energie;
-import fr.euphyllia.energie.model.Scheduler;
-import fr.euphyllia.energie.model.SchedulerType;
+import de.Linus122.fr.euphyllia.energie.Energie;
+import de.Linus122.fr.euphyllia.energie.model.Scheduler;
+import de.Linus122.fr.euphyllia.energie.model.SchedulerType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -36,8 +40,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
 
-import xyz.spaceio.metrics.Metrics;
-import xyz.spaceio.spacegui.GUIProvider;
+import de.Linus122.net.xyz.spaceio.metrics.Metrics;
+import de.Linus122.net.xyz.spaceio.spacegui.GUIProvider;
 
 /**
  * The main class for TimeIsMoney
@@ -281,12 +285,51 @@ public class Main extends JavaPlugin {
 	}
 	
 	/**
+	 * Checks if a player is within the configured world radius bounds
+	 * @param player The player to check
+	 * @return true if player is within bounds or has bypass permission, false otherwise
+	 */
+	private boolean isPlayerWithinBounds(Player player) {
+		if(player.hasPermission("tim.outofbounds")) {
+			return true;
+		}
+
+		String world = player.getWorld().getName();
+		if(!finalconfig.contains("out_of_bounds." + world)) {
+			return true;
+		}
+
+		int xRadius = finalconfig.getInt("out_of_bounds." + world + ".x-radius");
+		int zRadius = finalconfig.getInt("out_of_bounds." + world + ".z-radius");
+		
+		double x = Math.abs(player.getLocation().getX());
+		double z = Math.abs(player.getLocation().getZ());
+
+		if(x > xRadius || z > zRadius) {
+			int smallestRadius = Math.min(xRadius, zRadius);
+			if(finalconfig.getBoolean("display-messages-in-chat")) {
+				sendMessage(player, finalconfig.getString("message_out_of_bounds").replace("%radius%", String.valueOf(smallestRadius)));
+			}
+			if(finalconfig.getBoolean("display-messages-in-actionbar")) {
+				sendActionbar(player, finalconfig.getString("message_out_of_bounds").replace("%radius%", String.valueOf(smallestRadius)));
+			}
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Gets a list of applicable payouts for a player. Only returns one payout when using chance.
 	 * 
 	 * @param player The player to get the payouts of.
 	 * @return A list of payouts
 	 */
 	private List<Payout> getApplicablePayoutsForPlayer(Player player){
+		if(!isPlayerWithinBounds(player)) {
+			return Collections.emptyList();
+		}
+
 		if (!this.getConfig().getBoolean("choose-payout-by-chance")) {
 			// Choose applicable payouts by permission
 			List<Payout> payouts_ = payouts.stream().filter(payout -> player.hasPermission(payout.permission) || payout.permission.length() == 0).collect(Collectors.toList());

@@ -8,6 +8,13 @@ debug-log: false
 disabled_in_worlds:
 - "creative_world"
 
+# World radius limits for payouts. Players outside these bounds won't receive payouts
+# unless they have the tim.outofbounds permission
+out_of_bounds:
+  "example_world":
+    x-radius: 5000
+    z-radius: 5000
+
 # You can define if the player gets a payout whether player is afk or not.
 # the permission tim.afkbypass would avoid this for certain user or groups.
 afk_payout: false
@@ -81,6 +88,7 @@ payouts:
 # Translations
 # Both legacy color codes, &c etc. and hex RGB color codes, #&FF00FF, are supported.
 message: "&aYou earned &c%money% &afor 10 minutes online time!"
+message_out_of_bounds: "&cYou are too far from spawn to receive payouts! Stay within %radius% blocks of spawn.
 message_payoutlimit_reached: "&cYou have reached the payout limit today. You earned 0$"
 message_afk: "&cYou havn't earned money because you were afk!"
 message_afk_payout: "&6You earned &c%money% (%percent%% of normal payout) &6for 10 minutes online time while afk!"
