@@ -4,8 +4,7 @@ import static de.Linus122.TimeIsMoney.tools.Utils.CC;
 import static de.Linus122.TimeIsMoney.tools.Utils.applyPlaceholders;
 
 import com.earth2me.essentials.Essentials;
-import fr.euphyllia.energie.model.Scheduler;
-import fr.euphyllia.energie.model.SchedulerType;
+import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.File;
 import java.io.FileReader;
@@ -19,9 +18,6 @@ import java.util.stream.Collectors;
 
 import de.Linus122.TimeIsMoney.data.*;
 import de.Linus122.TimeIsMoney.tools.Utils;
-import de.Linus122.fr.euphyllia.energie.Energie;
-import de.Linus122.fr.euphyllia.energie.model.Scheduler;
-import de.Linus122.fr.euphyllia.energie.model.SchedulerType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Server;
@@ -39,10 +35,6 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.milkbowl.vault.economy.EconomyResponse.ResponseType;
-
-import de.Linus122.net.xyz.spaceio.metrics.Metrics;
-import de.Linus122.net.xyz.spaceio.spacegui.GUIProvider;
-
 /**
  * The main class for TimeIsMoney
  *
@@ -57,7 +49,7 @@ public class Main extends JavaPlugin {
 	/**
 	 * The scheduler being used by compatible with folia.
 	 */
-	public static Scheduler scheduler;
+	public static BukkitScheduler scheduler;
 	/**
 	 * The config version number.
 	 */
@@ -106,11 +98,11 @@ public class Main extends JavaPlugin {
 	@Override
 	public void onEnable() {
 
-		scheduler = new Energie(this).getMinecraftScheduler();
+		scheduler = this.getServer().getScheduler();
 		this.getCommand("timeismoney").setExecutor(new Cmd(this));
 		PL_VERSION = this.getDescription().getVersion();
 		
-		GUIProvider.registerPlugin(this);
+		//GUIProvider.registerPlugin(this);
 		//this.reloadConfig();
 	
 		
@@ -175,8 +167,8 @@ public class Main extends JavaPlugin {
 		if (Bukkit.getPluginManager().isPluginEnabled("Essentials") && this.getConfig().getBoolean("afk_use_essentials")) {
 			logger.info("Time is Money: Essentials found. Hook in it -> Will use Essentials's AFK feature if afk is enabled.");
 		}
-		if (!Energie.isFolia())
-			new Metrics(this);
+		// if (!Energie.isFolia())
+		// 	new Metrics(this);
 		
 		logger.info(CC("&aTime is Money &2v" + PL_VERSION + " &astarted."));
 	}
@@ -185,7 +177,7 @@ public class Main extends JavaPlugin {
 		String intervalString = getConfig().getString("global_interval", getConfig().getInt("give_money_every_second") + "s");
 		int globalTimerSeconds = Utils.parseTimeFormat(intervalString);
 
-		scheduler.runAtFixedRate(SchedulerType.SYNC, task -> {
+		scheduler.runTaskTimerAsynchronously(this, task -> {
 			for (Player player : Bukkit.getOnlinePlayers()) {
 				if (disabledWorlds.contains(player.getWorld().getName())) continue;
 				PlayerData playerData = this.pluginData.getPlayerData(player);
@@ -218,7 +210,7 @@ public class Main extends JavaPlugin {
 	 */
 	@Override
 	public void onDisable() {
-		scheduler.cancelAllTask();
+		// scheduler.cancelAllTask();
 
 		this.pluginData.saveData();
 
@@ -529,7 +521,7 @@ public class Main extends JavaPlugin {
 	private void dispatchCommandSync(final String cmd) {
 		final Server server = this.getServer();
 		
-		scheduler.runTask(SchedulerType.SYNC, task -> server.dispatchCommand(server.getConsoleSender(), cmd));
+		scheduler.runTask(this, task -> server.dispatchCommand(server.getConsoleSender(), cmd));
 	}
 	
 	/**
@@ -594,7 +586,7 @@ public class Main extends JavaPlugin {
 			
 			times--;
 			for (int i = 0; i < times; i++) {
-				scheduler.runDelayed(SchedulerType.SYNC, task -> sendSingleActionbarMessage(player, applyPlaceholders(player, CC(message))), 20L * i);
+				scheduler.runTaskLater(this, task -> sendSingleActionbarMessage(player, applyPlaceholders(player, CC(message))), 20L * i);
 			}
 		}
 	}
