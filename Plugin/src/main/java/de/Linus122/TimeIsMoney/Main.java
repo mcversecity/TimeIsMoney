@@ -183,12 +183,18 @@ public class Main extends JavaPlugin {
 				PlayerData playerData = this.pluginData.getPlayerData(player);
 
 				for(Payout payout : this.getApplicablePayoutsForPlayer(player)) {
+					if(!isPlayerWithinBounds(player)) {
+						return;
+					}
+
 					PayoutData playerPayoutData = playerData.getPayoutData(payout.id);
 					playerPayoutData.setSecondsSinceLastPayout(playerPayoutData.getSecondsSinceLastPayout() + 1);
 
 					int intervalSeconds = payout.interval != 0 ? payout.interval : globalTimerSeconds;
 
 					if (playerPayoutData.getSecondsSinceLastPayout() >= intervalSeconds) {
+
+
 						// new payout triggered, handling the payout
 						pay(player, payout, playerPayoutData);
 
@@ -318,10 +324,6 @@ public class Main extends JavaPlugin {
 	 * @return A list of payouts
 	 */
 	private List<Payout> getApplicablePayoutsForPlayer(Player player){
-		if(!isPlayerWithinBounds(player)) {
-			return Collections.emptyList();
-		}
-
 		if (!this.getConfig().getBoolean("choose-payout-by-chance")) {
 			// Choose applicable payouts by permission
 			List<Payout> payouts_ = payouts.stream().filter(payout -> player.hasPermission(payout.permission) || payout.permission.length() == 0).collect(Collectors.toList());
