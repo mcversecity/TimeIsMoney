@@ -183,9 +183,6 @@ public class Main extends JavaPlugin {
 				PlayerData playerData = this.pluginData.getPlayerData(player);
 
 				for(Payout payout : this.getApplicablePayoutsForPlayer(player)) {
-					if(!isPlayerWithinBounds(player)) {
-						return;
-					}
 
 					PayoutData playerPayoutData = playerData.getPayoutData(payout.id);
 					playerPayoutData.setSecondsSinceLastPayout(playerPayoutData.getSecondsSinceLastPayout() + 1);
@@ -193,7 +190,9 @@ public class Main extends JavaPlugin {
 					int intervalSeconds = payout.interval != 0 ? payout.interval : globalTimerSeconds;
 
 					if (playerPayoutData.getSecondsSinceLastPayout() >= intervalSeconds) {
-
+						if(!isPlayerWithinBounds(player)) {
+							return;
+						}
 
 						// new payout triggered, handling the payout
 						pay(player, payout, playerPayoutData);
