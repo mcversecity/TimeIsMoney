@@ -191,7 +191,8 @@ public class Main extends JavaPlugin {
 
 					if (playerPayoutData.getSecondsSinceLastPayout() >= intervalSeconds) {
 						if(!isPlayerWithinBounds(player)) {
-							return;
+							playerPayoutData.setSecondsSinceLastPayout(0);
+							continue;
 						}
 
 						// new payout triggered, handling the payout
@@ -303,12 +304,11 @@ public class Main extends JavaPlugin {
 		double z = Math.abs(player.getLocation().getZ());
 
 		if(x > xRadius || z > zRadius) {
-			int smallestRadius = Math.min(xRadius, zRadius);
 			if(finalconfig.getBoolean("display-messages-in-chat")) {
-				sendMessage(player, finalconfig.getString("message_out_of_bounds").replace("%radius%", String.valueOf(smallestRadius)));
+				sendMessage(player, finalconfig.getString("message_out_of_bounds").replace("%xradius%", String.valueOf(xRadius)).replace("%zradius%", String.valueOf(zRadius)));
 			}
 			if(finalconfig.getBoolean("display-messages-in-actionbar")) {
-				sendActionbar(player, finalconfig.getString("message_out_of_bounds").replace("%radius%", String.valueOf(smallestRadius)));
+				sendActionbar(player, finalconfig.getString("message_out_of_bounds").replace("%xradius%", String.valueOf(xRadius)).replace("%zradius%", String.valueOf(zRadius)));
 			}
 			return false;
 		}
